@@ -483,7 +483,7 @@ impl Node {
     /// This function returns a `Stream` of ros messages.
     pub fn subscribe<T: 'static>(
         &mut self, topic: &str, qos_profile: QosProfile,
-    ) -> Result<impl Stream<Item = T> + Unpin>
+    ) -> Result<mpsc::Receiver<T>>
     where
         T: WrappedTypesupport,
     {
