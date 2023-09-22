@@ -1,7 +1,8 @@
 use futures::channel::{mpsc, oneshot};
 use std::ffi::CString;
 use std::mem::MaybeUninit;
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{Arc, Weak};
+use parking_lot::Mutex;
 
 use crate::error::*;
 use crate::msg_types::*;
@@ -36,7 +37,7 @@ where
             .service
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_SERVER_INVALID)?;
-        let mut service = service.lock().unwrap();
+        let mut service = service.lock();
         let native_msg = WrappedNativeMsg::<T::Response>::from(&msg);
         service.send_response(self.request_id, Box::new(native_msg))
     }

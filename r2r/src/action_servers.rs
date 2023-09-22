@@ -5,7 +5,8 @@ use futures::stream::Stream;
 use std::collections::HashMap;
 use std::ffi::CString;
 use std::mem::MaybeUninit;
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{Arc, Weak};
+use parking_lot::Mutex;
 
 use crate::error::*;
 use crate::msg_types::generated_msgs::{action_msgs, builtin_interfaces, unique_identifier_msgs};
@@ -87,7 +88,7 @@ where
         let native_goal_info = WrappedNativeMsg::<action_msgs::msg::GoalInfo>::from(&goal_info);
 
         let server = self.server.upgrade().unwrap(); // todo fixme
-        let mut server = server.lock().unwrap();
+        let mut server = server.lock();
 
         let goal_handle: *mut rcl_action_goal_handle_t =
             unsafe { rcl_action_accept_new_goal(server.handle_mut(), &*native_goal_info) };
@@ -131,7 +132,7 @@ where
     pub fn reject(mut self) -> Result<()> {
         let time = builtin_interfaces::msg::Time::default();
         let server = self.server.upgrade().unwrap(); // todo fixme
-        let mut server = server.lock().unwrap();
+        let mut server = server.lock();
 
         let response_msg = T::make_goal_response_msg(false, time);
         let mut response_msg = WrappedNativeMsg::<
@@ -591,7 +592,7 @@ where
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_SERVER_INVALID)?;
 
-        let action_server = action_server.lock().unwrap();
+        let action_server = action_server.lock();
         action_server.is_cancelling(&self.uuid)
     }
 
@@ -612,7 +613,7 @@ where
         let mut native_msg = WrappedNativeMsg::<T::FeedbackMessage>::from(&feedback_msg);
         let ret = unsafe {
             rcl_action_publish_feedback(
-                action_server.lock().unwrap().handle(),
+                action_server.lock().handle(),
                 native_msg.void_ptr_mut(),
             )
         };
@@ -629,7 +630,7 @@ where
             .server
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_SERVER_INVALID)?;
-        let mut action_server = action_server.lock().unwrap();
+        let mut action_server = action_server.lock();
 
         // todo: check that the goal exists
         let goal_info = action_msgs::msg::GoalInfo {
@@ -674,7 +675,7 @@ where
             .server
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_SERVER_INVALID)?;
-        let mut action_server = action_server.lock().unwrap();
+        let mut action_server = action_server.lock();
 
         action_server.set_goal_state(&self.uuid, rcl_action_goal_event_t::GOAL_EVENT_ABORT)?;
 
@@ -698,7 +699,7 @@ where
             .server
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_SERVER_INVALID)?;
-        let mut action_server = action_server.lock().unwrap();
+        let mut action_server = action_server.lock();
 
         action_server.set_goal_state(&self.uuid, rcl_action_goal_event_t::GOAL_EVENT_SUCCEED)?;
 

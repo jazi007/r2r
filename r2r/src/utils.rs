@@ -1,7 +1,7 @@
 use r2r_rcl::*;
 use std::ffi::CString;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Mutex, MutexGuard};
+use parking_lot::{Mutex, MutexGuard};
 
 use lazy_static::lazy_static;
 
@@ -10,7 +10,7 @@ lazy_static! {
 }
 
 pub(crate) fn log_guard() -> MutexGuard<'static, ()> {
-    LOG_GUARD.lock().unwrap()
+    LOG_GUARD.lock()
 }
 
 // for some hidden reason g_rcutils_logging_initialized

@@ -2,7 +2,8 @@ use std::ffi::CStr;
 use std::ffi::CString;
 use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use parking_lot::Mutex;
 
 use crate::error::*;
 use crate::log_guard;
@@ -79,7 +80,7 @@ impl Context {
     ///
     /// (This is abbreviated to rcl_ok() in the other bindings.)
     pub fn is_valid(&self) -> bool {
-        let mut ctx = self.context_handle.lock().unwrap();
+        let mut ctx = self.context_handle.lock();
         unsafe { rcl_context_is_valid(ctx.as_mut()) }
     }
 }

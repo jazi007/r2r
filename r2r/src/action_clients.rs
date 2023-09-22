@@ -5,7 +5,8 @@ use std::collections::HashMap;
 use std::ffi::CString;
 use std::future::Future;
 use std::mem::MaybeUninit;
-use std::sync::{Mutex, Weak};
+use std::sync::Weak;
+use parking_lot::Mutex;
 
 use crate::action_common::*;
 use crate::error::*;
@@ -51,7 +52,7 @@ where
             .client
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_CLIENT_INVALID)?;
-        let client = client.lock().unwrap();
+        let client = client.lock();
 
         Ok(client.get_goal_status(&self.uuid))
     }
@@ -69,7 +70,7 @@ where
             .client
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_CLIENT_INVALID)?;
-        let mut client = client.lock().unwrap();
+        let mut client = client.lock();
 
         client.send_cancel_request(&self.uuid)
     }
@@ -104,7 +105,7 @@ where
             .client
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_CLIENT_INVALID)?;
-        let mut client = client.lock().unwrap();
+        let mut client = client.lock();
 
         let uuid = uuid::Uuid::new_v4();
         let uuid_msg = unique_identifier_msgs::msg::UUID {
@@ -143,7 +144,7 @@ where
                                 let c = fut_client
                                     .upgrade()
                                     .ok_or(Error::RCL_RET_ACTION_CLIENT_INVALID)?;
-                                let mut c = c.lock().unwrap();
+                                let mut c = c.lock();
                                 c.send_result_request(uuid);
                             }
 
@@ -569,7 +570,7 @@ where
             .client
             .upgrade()
             .ok_or(Error::RCL_RET_ACTION_CLIENT_INVALID)?;
-        let mut client = client.lock().unwrap();
+        let mut client = client.lock();
         client.register_poll_available(sender);
         Ok(())
     }
