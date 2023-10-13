@@ -50,18 +50,18 @@ pub fn setup_bindgen_builder() -> bindgen::Builder {
         });
     if !cfg!(feature = "doc-only") {
         let ament_prefix_var_name = "AMENT_PREFIX_PATH";
+        let split_char = if cfg!(target_os = "windows") {
+            ";"
+        } else {
+            ":"
+        };
         let ament_prefix_var = {
             let mut ament_str = env::var_os(ament_prefix_var_name).expect("Source your ROS!");
             if let Some(cmake_prefix_var) = env::var_os("CMAKE_PREFIX_PATH") {
-                ament_str.push(";");
+                ament_str.push(split_char);
                 ament_str.push(cmake_prefix_var);
             }
             RawOsString::new(ament_str)
-        };
-        let split_char = if cfg!(target_os = "windows") {
-            ';'
-        } else {
-            ':'
         };
         for p in ament_prefix_var.split(split_char) {
             let path = Path::new(&p.to_os_str()).join("include");
@@ -138,13 +138,13 @@ pub fn print_cargo_link_search() {
     let ament_prefix_var_name = "AMENT_PREFIX_PATH";
     if let Some(paths) = env::var_os(ament_prefix_var_name) {
         let split_char = if cfg!(target_os = "windows") {
-            ';'
+            ";"
         } else {
-            ':'
+            ":"
         };
         let paths = if let Some(cmake_prefix_var) = env::var_os("CMAKE_PREFIX_PATH") {
             let mut cmake_paths = paths;
-            cmake_paths.push(split_char.to_string());
+            cmake_paths.push(split_char);
             cmake_paths.push(cmake_prefix_var);
             RawOsString::new(cmake_paths)
         } else {
